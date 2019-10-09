@@ -1,14 +1,17 @@
 import numpy as np
 from scipy.sparse import csr_matrix
 
-def read_libsvm(data_path, num_features = None):
+def read_libsvm(data_path, *, num_features = None, append_bias = True):
     """
     Reads a libsvm file to produce features and labels.
 
     The number of features can be inferred from the data, or specified.
 
+    A one is appended to the data by default to act as a bias term.
+
     :param data_path: the path to a libsvm file
     :param num_features: the number of features in the data
+    :param append_bias: whether or not to append a 1 as a bias term
 
     :return: a feature matrix
     :return: a label vector
@@ -36,7 +39,13 @@ def read_libsvm(data_path, num_features = None):
                 column_indices.append(int(column_index))
                 data.append(float(value))
 
-        x = csr_matrix((data, (row_indices, column_indices)), shape = (len(y), num_features))
+            if append_bias:
+                row_indices.append(row_index)
+                column_indices.append(num_features)
+                data.append(1.0)
+
+        shape = (len(y), num_features + (1 if append_bias else 0))
+        x = csr_matrix((data, (row_indices, column_indices)), shape = shape)
 
         return x, np.array(y)
 
