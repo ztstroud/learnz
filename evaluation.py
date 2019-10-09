@@ -11,7 +11,7 @@ def accuracy(labels, predictions):
     :return: the accuracy of the given predictions on the given labels
     """
 
-    correct = np.equal(labels, predictions.T)
+    correct = np.equal(labels, predictions)
     correct_count = np.count_nonzero(correct)
 
     return correct_count / len(labels)
