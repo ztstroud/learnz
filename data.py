@@ -54,7 +54,7 @@ def _count_libsvm_features(lines):
     for line in lines:
         elements = line.split()
 
-        for element in elements:
+        for element in elements[1:]:
             column_index = int(element.split(":")[0])
 
             if column_index > max_column_index:
