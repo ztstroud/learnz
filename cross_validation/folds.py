@@ -1,4 +1,5 @@
 import copy
+import itertools
 import numpy as np
 import pandas as pd
 import random
@@ -113,3 +114,128 @@ def _create_folds_numpy(data, count):
         folds.append(fold)
 
     return folds
+
+def join_folds(folds, holdout_index = None):
+    """
+    Joins the given folds
+
+    A holdout index can be specified to holdout data.
+
+    :param folds: the folds to join
+    :param holdout_index: an index to holdout
+
+    :return: joined folds
+    """
+
+    if isinstance(folds[0], tuple):
+        return _join_folds_tuple(folds, holdout_index)
+
+    if isinstance(folds[0], list):
+        return _join_folds_list(folds, holdout_index)
+
+    if isinstance(folds[0], pd.DataFrame):
+        return _join_folds_pandas(folds, holdout_index)
+
+    if isinstance(folds[0], np.ndarray):
+        return _join_folds_numpy(folds, holdout_index)
+
+    if isinstance(folds[0], scipy.sparse.csr.csr_matrix):
+        return _join_folds_csr_matrix(folds, holdout_index)
+
+    raise Exception(f"Unrecognized data type: {typep(data)}")
+
+def _join_folds_tuple(folds, holdout_index = None):
+    """
+    Joins the given folds
+
+    A holdout index can be specified to holdout data.
+
+    :param folds: the folds to join
+    :param holdout_index: an index to holdout
+
+    :return: joined folds
+    """
+
+    accumulators = [[] for _ in range(len(folds[0]))]
+    included_folds = _get_included_folds(folds, holdout_index)
+
+    for fold in included_folds:
+        for index in range(len(fold)):
+            accumulators[index].append(fold[index])
+
+    joined = [join_folds(x) for x in accumulators]
+    return tuple(joined)
+
+def _join_folds_list(folds, holdout_index = None):
+    """
+    Joins the given folds
+
+    A holdout index can be specified to holdout data.
+
+    :param folds: the folds to join
+    :param holdout_index: an index to holdout
+
+    :return: joined folds
+    """
+
+    included_folds = _get_included_folds(folds, holdout_index)
+    return list(itertools.chain(*included_folds))
+
+def _join_folds_pandas(folds, holdout_index = None):
+    """
+    Joins the given folds
+
+    A holdout index can be specified to holdout data.
+
+    :param folds: the folds to join
+    :param holdout_index: an index to holdout
+
+    :return: joined folds
+    """
+
+    included_folds = _get_included_folds(folds, holdout_index)
+    return pd.concat(included_folds)
+
+def _join_folds_numpy(folds, holdout_index = None):
+    """
+    Joins the given folds
+
+    A holdout index can be specified to holdout data.
+
+    :param folds: the folds to join
+    :param holdout_index: an index to holdout
+
+    :return: joined folds
+    """
+
+    included_folds = _get_included_folds(folds, holdout_index)
+    return np.vstack(included_folds)
+
+def _join_folds_csr_matrix(folds, holdout_index = None):
+    """
+    Joins the given folds
+
+    A holdout index can be specified to holdout data.
+
+    :param folds: the folds to join
+    :param holdout_index: an index to holdout
+
+    :return: joined folds
+    """
+
+    included_folds = _get_included_folds(folds, holdout_index)
+    return scipy.sparse.vstack(included_folds)
+
+def _get_included_folds(folds, holdout_index = None):
+    """
+    Returns a list that contains the holds to include whe joining.
+
+    If a holdout index is specified, it will not be included.
+
+    :param folds: the folds to join
+    :param holdout_index: an index to holdout
+
+    :return: the folds to use when joining
+    """
+
+    return [folds[index] for index in range(len(folds)) if index != holdout_index]
