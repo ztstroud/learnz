@@ -1,8 +1,8 @@
 import itertools
 import numpy as np
 
-from learnz.cross_validation.folds import create_folds, join_folds
-import learnz.evaluation
+from learnz.ml.cross_validation.folds import create_folds, join_folds
+import learnz.ml.evaluation
 
 
 def cross_validate(model, data, fold_count, **hyperparameter_ranges):
@@ -37,7 +37,7 @@ def evaluate_folds(model, folds, **hyperparameters):
         data_test = folds[holdout_index]
 
         model.train(data_train, **hyperparameters)
-        _, [evaluation] = model.predict(data_test, [learnz.evaluation.accuracy])
+        _, [evaluation] = model.predict(data_test, [learnz.ml.evaluation.accuracy])
         evaluations.append(evaluation)
 
     return np.average(evaluations)
