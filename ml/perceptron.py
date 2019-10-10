@@ -2,8 +2,6 @@ import numpy as np
 import random
 from scipy.sparse.csr import csr_matrix
 
-from learnz.ml.evaluation import evaluate
-
 
 class Perceptron:
     def train(self, data, *, learning_rate = 1.0, decay_learning_rate = False, averaged = True, epochs = 10):
@@ -17,52 +15,85 @@ class Perceptron:
         :param epochs: the number of epochs to train for (default 10)
         """
 
-        num_examples, num_features = data[0].shape
+        self.weights = _train(data,
+                              learning_rate = learning_rate,
+                              decay_learning_rate = decay_learning_rate,
+                              averaged = averaged,
+                              epochs = epochs)
 
-        weights = np.array([random.uniform(-0.01, 0.01) for _ in range(num_features)])
-        total_weights = np.array([0.0 for _ in range(num_features)])
-
-        for epoch in range(epochs):
-            for example, label in enumerate_data(data):
-                prediction = predict(example, weights)
-
-                if prediction != label:
-                    addition = learning_rate / (1 + epoch) * label * example
-
-                    # sparse matrices need to be converted to vectors
-                    if isinstance(data[0], np.ndarray):
-                        weights = weights + addition
-                    elif isinstance(data[0], csr_matrix):
-                        weights = weights + addition.toarray().reshape((num_features,))
-
-                if averaged:
-                    total_weights = total_weights + weights
-
-        if averaged:
-            self.weights = total_weights / (num_examples * epochs)
-
-        self.weights = weights
-
-    def predict(self, data, evaluation_metrics = None):
+    def predict(self, data, *evaluation_metrics):
         """
         Make a prediction for each of the given examples.
 
         :param examples: the examples to predict
+        :param evaluation_metrics: an optional list of evaluation metrics to apply
 
         :return: predictions for each example
         """
 
         examples, labels = data
-        predictions = predict(examples, self.weights)
+        predictions = _predict(examples, self.weights)
 
-        if evaluation_metrics is None:
+        if len(evaluation_metrics) == 0:
             return predictions
 
         evaluations = evaluate(labels, predictions, *evaluation_metrics)
         return predictions, evaluations
 
+    def evaluate(self, data, *evaluation_metrics):
+        """
+        Evaluates the model on the given examples with the provided metrics.
 
-def predict(example, weights):
+        :param data: the data to predict
+        :param evaluation_metrics: a list of evaluation metrics to apply
+
+        :return: the results of the requested evaluations
+        """
+
+        examples, labels = data
+        predictions = _predict(examples, self.weights)
+
+        return evaluate(labels, predictions, *evaluation_metrics)
+
+
+def _train(data, *, learning_rate, decay_learning_rate, averaged, epochs):
+    """
+    Trains a perceptron using the given data.
+
+    :param data: the data to use in training
+    :param learning_rate: the learning rate of the perceptron
+    :param decay_learning_rate: whether or not to decay the learning rate with each epoch
+    :param averaged: use the average of all weights
+    :param epochs: the number of epochs to train for
+    """
+
+    num_examples, num_features = data[0].shape
+
+    weights = np.array([random.uniform(-0.01, 0.01) for _ in range(num_features)])
+    total_weights = np.array([0.0 for _ in range(num_features)])
+
+    for epoch in range(epochs):
+        for example, label in enumerate_data(data):
+            prediction = predict(example, weights)
+
+            if prediction != label:
+                addition = learning_rate / (1 + epoch) * label * example
+
+                # sparse matrices need to be converted to vectors
+                if isinstance(data[0], np.ndarray):
+                    weights = weights + addition
+                elif isinstance(data[0], csr_matrix):
+                    weights = weights + addition.toarray().reshape((num_features,))
+
+            if averaged:
+                total_weights = total_weights + weights
+
+    if averaged:
+        return total_weights / (num_examples * epochs)
+
+    return weights
+
+def _predict(example, weights):
     """
     Makes a prediction for each of the given examples.
 
