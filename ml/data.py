@@ -47,7 +47,7 @@ def read_libsvm(data_path, *, num_features = None, append_bias = True):
         shape = (len(y), num_features + (1 if append_bias else 0))
         x = csr_matrix((data, (row_indices, column_indices)), shape = shape)
 
-        return x, np.array(y).reshape((len(y), 1))
+        return x, np.array(y)
 
 def _count_libsvm_features(lines):
     """
