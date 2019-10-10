@@ -110,7 +110,7 @@ def _create_folds_numpy(data, count):
         low = int(fold_index * fold_count)
         high = int((fold_index + 1) * fold_count)
 
-        fold = data[low:high, :]
+        fold = data[low:high]
         folds.append(fold)
 
     return folds
@@ -209,6 +209,11 @@ def _join_folds_numpy(folds, holdout_index = None):
     """
 
     included_folds = _get_included_folds(folds, holdout_index)
+    
+    # vectors need to be stacked horizontally
+    if len(folds[0].shape) == 1:
+        return np.hstack(included_folds)
+
     return np.vstack(included_folds)
 
 def _join_folds_csr_matrix(folds, holdout_index = None):
