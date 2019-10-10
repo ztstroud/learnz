@@ -2,6 +2,8 @@ import numpy as np
 import random
 from scipy.sparse.csr import csr_matrix
 
+from learnz.ml.evaluation import evaluate
+
 
 class Perceptron:
     def train(self, data, *, learning_rate = 1.0, decay_learning_rate = False, averaged = True, epochs = 10):
@@ -74,7 +76,7 @@ def _train(data, *, learning_rate, decay_learning_rate, averaged, epochs):
 
     for epoch in range(epochs):
         for example, label in enumerate_data(data):
-            prediction = predict(example, weights)
+            prediction = _predict(example, weights)
 
             if prediction != label:
                 addition = learning_rate / (1 + epoch) * label * example
