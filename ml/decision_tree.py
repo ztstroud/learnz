@@ -131,8 +131,15 @@ class DecisionTree:
         available_feature_names = {feature_name for feature_name in data.columns if feature_name != self.label_name}
         self._root = id3(data, available_feature_names, self.label_name, max_depth, metric)
 
-    def predict(self, data):
-        return pd.Series(self.classify(row) for _, row in data.iterrows())
+    def predict(self, data, evaluation_metrics = None):
+        predictions = pd.Series(self.classify(row) for _, row in data.iterrows())
+        labels = data[self.label_name].reset_index(drop = True)
+
+        if evaluation_metrics is None:
+            return predictions
+
+        evaluations = [metric(labels, predictions) for metric in evaluation_metrics]
+        return predictions, evaluations
 
     def classify(self, example):
         return self._classify(example, self._root)

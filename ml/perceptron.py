@@ -34,7 +34,7 @@ class Perceptron:
 
         self.weights = weights
 
-    def predict(self, data):
+    def predict(self, data, evaluation_metrics = None):
         """
         Make a prediction for each of the given examples.
 
@@ -43,9 +43,14 @@ class Perceptron:
         :return: predictions for each example
         """
 
-        print(self.weights)
-        print(self.weights.shape)
-        return predict(data[0], self.weights)
+        examples, labels = data
+        predictions = predict(examples, self.weights)
+
+        if evaluation_metrics is None:
+            return predictions
+
+        evaluations = [metric(labels, predictions) for metric in evaluation_metrics]
+        return predictions, evaluations
 
 
 def predict(example, weights):
