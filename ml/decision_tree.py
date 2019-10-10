@@ -133,30 +133,21 @@ class DecisionTree:
         available_feature_names = {feature_name for feature_name in data.columns if feature_name != self.label_name}
         self._root = id3(data, available_feature_names, self.label_name, max_depth, metric)
 
-    def predict(self, data, evaluation_metrics = None):
-        predictions = pd.Series(self.classify(row) for _, row in data.iterrows())
+    def predict(self, data, *evaluation_metrics):
+        predictions = pd.Series(self._root.classify(row) for _, row in data.iterrows())
         labels = data[self.label_name].reset_index(drop = True)
 
-        if evaluation_metrics is None:
+        if len(evaluation_metrics) == 0:
             return predictions
 
         evaluations = evaluate(labels, predictions, *evaluation_metrics)
         return predictions, evaluations
 
-    def classify(self, example):
-        return self._classify(example, self._root)
+    def evaluate(self, data, *evaluation_metrics):
+        predictions = self.predict(data)
+        labels = data[self.label_name].reset_index(drop = True)
 
-    def _classify(self, example, tree):
-        if isinstance(tree, LabelNode):
-            return tree.label
-
-        feature_value = example[tree.feature_name]
-        if feature_value in tree.decisions:
-            return self._classify(example, tree.decisions[feature_value])
-
-        # if the value is not found, return the most common label
-        return tree.most_common_label
-
+        return evaluate(labels, predictions, *evaluation_metrics)
 
 class DecisionNode:
     def __init__(self, feature_name, most_common_label):
@@ -164,8 +155,19 @@ class DecisionNode:
         self.most_common_label = most_common_label
 
         self.decisions = dict()
+    
+    def classify(self, example):
+        feature_value = example[self.feature_name]
+        if feature_value in self.decisions:
+            return self.decisions[feature_value].classify(example)
+
+        # if the value is not found return the most common label
+        return self.most_common_label
 
 
 class LabelNode:
     def __init__(self, label):
         self.label = label
+
+    def classify(self, example):
+        return self.label
