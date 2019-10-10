@@ -2,6 +2,8 @@ import numpy as np
 import random
 from scipy.sparse.csr import csr_matrix
 
+from learnz.ml.evaluation import evaluate
+
 
 class Perceptron:
     def train(self, data, *, learning_rate = 1.0, decay_learning_rate = False, averaged = True, epochs = 10):
@@ -56,7 +58,7 @@ class Perceptron:
         if evaluation_metrics is None:
             return predictions
 
-        evaluations = [metric(labels, predictions) for metric in evaluation_metrics]
+        evaluations = evaluate(labels, predictions, *evaluation_metrics)
         return predictions, evaluations
 
 

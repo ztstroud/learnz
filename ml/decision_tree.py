@@ -1,6 +1,8 @@
 import math
 import pandas as pd
 
+from learnz.ml.evaluation import evaluate
+
 
 def entropy(data, feature_name):
     """
@@ -138,7 +140,7 @@ class DecisionTree:
         if evaluation_metrics is None:
             return predictions
 
-        evaluations = [metric(labels, predictions) for metric in evaluation_metrics]
+        evaluations = evaluate(labels, predictions, *evaluation_metrics)
         return predictions, evaluations
 
     def classify(self, example):
