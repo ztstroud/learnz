@@ -37,7 +37,7 @@ def evaluate_folds(model, folds, **hyperparameters):
         data_test = folds[holdout_index]
 
         model.train(data_train, **hyperparameters)
-        _, [evaluation] = model.predict(data_test, [learnz.ml.evaluation.accuracy])
+        [evaluation] = model.evaluate(data_test, learnz.ml.evaluation.accuracy)
         evaluations.append(evaluation)
 
     return np.average(evaluations)
