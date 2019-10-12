@@ -95,7 +95,7 @@ def get_clusters(centers, data, distance_function):
 
     return clusters
 
-def gonzalez(data, center_count, distance_function = euclidean_distance, *, return_centers = False):
+def gonzalez(data, center_count, distance_function = euclidean_distance, *, run_lloyds = True, return_centers = False):
     """
     The Gonzalez algorithm for k-means clustering.
 
@@ -111,6 +111,7 @@ def gonzalez(data, center_count, distance_function = euclidean_distance, *, retu
     :param data: list of vectors to cluster
     :param center_count: the number of centers to find
     :param distance_function: the distance function to use (default is euclidean)
+    :param run_lloyds: if True, run Lloyd's algorithm on the initial centers (default True)
     :param return_centers: if True, the centers of the clusters will be returned with the clusters
 
     :return: the clusters created by the gonzalez algorithm
@@ -131,6 +132,9 @@ def gonzalez(data, center_count, distance_function = euclidean_distance, *, retu
 
         centers.append(max_vector)
 
+    if run_lloyds:
+        centers = lloyds_algorithm(centers, data, distance_function)
+
     clusters = get_clusters(centers, data, distance_function)
 
     if return_centers:
@@ -138,7 +142,7 @@ def gonzalez(data, center_count, distance_function = euclidean_distance, *, retu
 
     return clusters
 
-def kmeans_pp(data, center_count, distance_function = euclidean_distance, *, return_centers = False):
+def kmeans_pp(data, center_count, distance_function = euclidean_distance, *, run_lloyds = True, return_centers = False):
     """
     The k-means++ algorithm for k-means clustering.
 
@@ -155,7 +159,8 @@ def kmeans_pp(data, center_count, distance_function = euclidean_distance, *, ret
     :param data: list of vectors to cluster
     :param center_count: the number of centers to find
     :param distance_function: the distance function to use (default is euclidean)
-    :param return_centers: if True, the centers of the clusters will be returned with the clusters
+    :param run_lloyds: if True, run Lloyd's algorithm on the initial centers (default True)
+    :param return_centers: if True, the centers of the clusters will be returned with the clusters (default False)
 
     :return: the clusters created by the k-means++ algorithm
     """
@@ -178,9 +183,43 @@ def kmeans_pp(data, center_count, distance_function = euclidean_distance, *, ret
                 centers.append(data[index])
                 break
 
+    if run_lloyds:
+        centers = lloyds_algorithm(centers, data, distance_function)
+
     clusters = get_clusters(centers, data, distance_function)
 
     if return_centers:
         return clusters, centers
 
     return clusters
+
+def lloyds_algorithm(centers, data, distance_function):
+    """
+    Executes lloyd's algorithm and returns the new centers.
+
+    data can be a list of numpy vectors or a numpy array of numpy vectors.
+
+    The given distance function will be used to calculate the distance between a
+    pair of vectors.
+
+    :param centers: the centers to adjust
+    :param data: list of vectors to cluster
+    :param distance_function: the distance function to use
+
+    :return: the adjusted clusters
+    """
+
+    while True:
+        clusters = get_clusters(centers, data, distance_function)
+        new_centers = [np.average(cluster, axis = 0) for cluster in clusters]
+
+        changed = False
+        for old_center, new_center in zip(centers, new_centers):
+            if not np.array_equal(old_center, new_center):
+                changed = True
+                break
+
+        if not changed:
+            return centers
+
+        centers = new_centers
