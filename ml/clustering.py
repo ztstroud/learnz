@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 
 def euclidean_distance(vector_one, vector_two):
@@ -110,7 +111,7 @@ def gonzalez(data, center_count, distance_function = euclidean_distance, *, retu
     :param data: list of vectors to cluster
     :param center_count: the number of centers to find
     :param distance_function: the distance function to use (default is euclidean)
-    :param return_centers: if True, the centers of the clusters will be returned instead of the centers
+    :param return_centers: if True, the centers of the clusters will be returned with the clusters
 
     :return: the clusters created by the gonzalez algorithm
     """
@@ -129,6 +130,53 @@ def gonzalez(data, center_count, distance_function = euclidean_distance, *, retu
                 max_vector = vector
 
         centers.append(max_vector)
+
+    clusters = get_clusters(centers, data, distance_function)
+
+    if return_centers:
+        return clusters, centers
+
+    return clusters
+
+def kmeans_pp(data, center_count, distance_function = euclidean_distance, *, return_centers = False):
+    """
+    The k-means++ algorithm for k-means clustering.
+
+    The first center is chosen arbitrarily as the first data point. The next
+    center is selected randomly from all data points proportional to the square
+    of its distance from its center. This process is repeated until the desired
+    number of centers are found.
+
+    data can be a list of numpy vectors or a numpy array of numpy vectors.
+
+    The given distance function will be used to calculate the distance between a
+    pair of vectors.
+
+    :param data: list of vectors to cluster
+    :param center_count: the number of centers to find
+    :param distance_function: the distance function to use (default is euclidean)
+    :param return_centers: if True, the centers of the clusters will be returned with the clusters
+
+    :return: the clusters created by the k-means++ algorithm
+    """
+
+    centers = [data[0]]
+
+    while len(centers) < center_count:
+        distances = [pow(distance_to_center(centers, vector, distance_function), 2) for vector in data]
+        total_distance = sum(distances)
+
+        distances = [distance / total_distance for distance in distances]
+
+        uniform = random.uniform(0.0, 1.0)
+        cumulative = 0.0
+
+        for index, distance in enumerate(distances):
+            cumulative += distance
+
+            if uniform < cumulative:
+                centers.append(data[index])
+                break
 
     clusters = get_clusters(centers, data, distance_function)
 
