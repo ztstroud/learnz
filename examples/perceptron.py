@@ -16,9 +16,16 @@ model = Perceptron()
 model.train(data_train, epochs = 100)
 
 # Get an evaluation metric
-from learnz.ml.evaluation import accuracy as accuracy
+from learnz.ml.evaluation import accuracy, precision_on, recall_on
+import learnz.ml.evaluation as evaluation
 
 # Make predictions and evaluations on the trained model (we have provided every
 # example, so the accuracy should be 1.0 unless we are very unlucky)
-[train_accuracy] = model.evaluate(data_train, accuracy)
+predictions, [train_accuracy, train_precision, train_recall] = model.predict(data_train, accuracy, precision_on(1), recall_on(1))
+
+print(f"Ground Truth:\n  {y_train}\n")
+print(f"Predictions:\n  {predictions}\n")
+
 print(f"Accuracy: {train_accuracy}")
+print(f"Precision: {train_precision}")
+print(f"Recall: {train_recall}")
