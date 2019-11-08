@@ -118,3 +118,40 @@ def _recall(value, labels, predictions):
         return 0
 
     return np.count_nonzero(correct & with_value) / np.count_nonzero(with_value)
+
+def fscore_on(value):
+    """
+    Returns a function that can be used to determine the F1 score of a set of
+    predictions on a set of labels. The function should be called with the
+    labels as the first parameter and the predictions as the second parameter.
+
+    For example:
+
+        fscore_on_one = fscore_on(1)
+        fscore = fscore_on_one(labels, predictions)
+
+    :param value: the value to find the fscore of
+
+    :return: a function that determines the fscore of given labels and predictions
+    """
+
+    return lambda labels, predictions: _fscore(value, labels, predictions)
+
+def _fscore(value, labels, predictions):
+    """
+    Determines the F1 score of the given labels and predictions on the given value.
+
+    :param value: the value top calculate the fscore of
+    :param labels: the ground truth
+    :param predictions: predicted labels
+
+    :return: the F1 score of the predictions for the given value
+    """
+
+    precision = _precision(value, labels, predictions)
+    recall = _recall(value, labels, predictions)
+
+    if precision == 0 or recall == 0:
+        return 0
+
+    return 2 * ((precision * recall) / (precision + recall))
